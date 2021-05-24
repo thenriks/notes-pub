@@ -3,6 +3,6 @@ Made using Python and FastAPI and Mongo database.
 
 Frontend:
 
-https://github.com/thenriks/notes-nuxt
+Nuxt.js: https://github.com/thenriks/notes-nuxt
 
-https://github.com/thenriks/notes-flutter
+Flutter: https://github.com/thenriks/notes-flutter
