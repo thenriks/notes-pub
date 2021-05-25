@@ -25,6 +25,10 @@ class RemoveBody(BaseModel):
     id: str
 
 
+class CloseBody(BaseModel):
+    token: str
+
+
 app = FastAPI()
 
 app.add_middleware(
@@ -135,6 +139,7 @@ async def remove_element(rb: RemoveBody):
 
 @app.get("/site/{site_id}")
 async def get_site(site_id: int):
+    print("get_site()")
 
     client = MongoClient(dbcreds.MONGOPATH)
     ndb = client.notedata
@@ -154,8 +159,27 @@ async def get_id(token: str):
     return usr['sid']
 
 
+@app.post("/close_site")
+async def close_site(body: CloseBody):
+    client = MongoClient(dbcreds.MONGOPATH)
+
+    usrcol = client.userdata.users
+    usr = usrcol.find_one({"token": body.token})
+
+    ndb = client.notedata
+    ncol = ndb.sites
+
+    ncol.update_one({"sid": usr['sid']}, {"$set": {"isOpen": False}})
+
+
 @app.post("/add_text")
 async def add_text(new_text: TextModel):
+    # print('txt:' + new_text.text)
+    # print('tkn:' + new_text.token)
+
+    if len(new_text.text) > 500:
+        return "ERROR: too long message"
+
     el = {"id": uuid.uuid4(), "type": "text", "text": new_text.text}
 
     client = MongoClient(dbcreds.MONGOPATH)
@@ -180,6 +204,9 @@ async def add_text(new_text: TextModel):
 
 @app.post("/add_link")
 async def add_link(new_link: LinkModel):
+    if len(new_link.url) > 1024:
+        return "ERROR: too long link"
+
     el = {"id": uuid.uuid4(), "type": "link", "url": new_link.url}
 
     client = MongoClient(dbcreds.MONGOPATH)
